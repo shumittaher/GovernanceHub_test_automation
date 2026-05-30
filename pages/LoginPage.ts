@@ -1,13 +1,11 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 import type { User } from '../test-data/users';
 
 export class LoginPage {
   private readonly emailInput: Locator;
   private readonly passwordInput: Locator;
   private readonly signInButton: Locator;
-  // Exposed for assertions in tests — assumes the app uses role="alert" for auth errors.
-  // If the test fails here, inspect the error element and update this locator.
-  readonly errorMessage: Locator;
+  private readonly errorMessage: Locator;
 
   constructor(private readonly page: Page) {
     // If these selectors fail, verify the exact label text in the app.
@@ -16,7 +14,11 @@ export class LoginPage {
     this.emailInput = page.getByLabel('Email');
     this.passwordInput = page.getByLabel('Password');
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
-    this.errorMessage = page.getByRole('alert');
+    this.errorMessage = page.getByTestId('login-error');
+  }
+
+  async expectLoginError(): Promise<void> {
+    await expect(this.errorMessage).toBeVisible();
   }
 
   async goto() {

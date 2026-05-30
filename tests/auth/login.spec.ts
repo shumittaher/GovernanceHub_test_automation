@@ -24,7 +24,6 @@ test.describe('Authentication', () => {
     await loginPage.login(superAdminUser.email, 'WrongPassword!');
 
     await expect(page).toHaveURL(/login/);
-    await expect(page.getByTestId("login-error")).toBeVisible();
+    await loginPage.expectLoginError();
   });
-
 });
