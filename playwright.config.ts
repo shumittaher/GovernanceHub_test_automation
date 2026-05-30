@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from './utils/config';
 
 export default defineConfig({
   testDir: './tests',
@@ -8,7 +9,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: config.frontendUrl,
     trace: 'on-first-retry',
   },
   projects: [
