@@ -35,6 +35,14 @@ export class SuperAdminAdminsPage {
     await this.expectAdminVisible(details.email);
   }
 
+  async deleteAdmin(email: string) {
+    this.page.once('dialog', dialog => dialog.accept());
+    await this.page
+      .getByRole('row', { name: new RegExp(email) })
+      .getByRole('button', { name: 'Delete' })
+      .click();
+  }
+
   async expectAdminVisible(email: string) {
     await expect(this.page.getByRole('row', { name: new RegExp(email) })).toBeVisible();
   }
