@@ -4,6 +4,8 @@ import { superAdminUser } from '../../test-data/users';
 
 // Super Admin authentication — verifies role-based login for the highest privilege level
 test.describe('Authentication', () => {
+  // Login tests exercise the login flow itself — must start without any saved auth state
+  test.use({ storageState: { cookies: [], origins: [] } });
 
   test('super admin can log in with valid credentials', async ({ page }) => {
     const loginPage = new LoginPage(page);
