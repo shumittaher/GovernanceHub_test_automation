@@ -1,6 +1,6 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 import { config } from '../../utils/config';
-import { adminUser } from '../../test-data/users';
+import { type User, adminUser_2, userUser_2 } from '../../test-data/users';
 
 // Helpers
 
@@ -8,9 +8,9 @@ function authHeader(token: string) {
   return { Authorization: `Bearer ${token}` };
 }
 
-async function getToken(request: APIRequestContext): Promise<string> {
+async function getToken(request: APIRequestContext, user: User = adminUser_2): Promise<string> {
   const response = await request.post(`${config.apiBaseUrl}/api/auth/login`, {
-    data: { email: adminUser.email, password: adminUser.password },
+    data: { email: user.email, password: user.password },
   });
   expect(response.status()).toBe(200);
   const { token } = await response.json();
@@ -39,26 +39,29 @@ async function deleteIncident(request: APIRequestContext, token: string, id: num
 
 test.describe('Incidents API', () => {
 
-  test('authenticated user can create an incident via API', async ({ request }) => {
-    const token = await getToken(request);
-    const suffix = Date.now();
+  for (const user of [adminUser_2, userUser_2]) {
+    test(`${user.role} can create an incident via API`, async ({ request }) => {
+      const token = await getToken(request, user);
+      const adminToken = await getToken(request, adminUser_2);
+      const suffix = Date.now();
 
-    const response = await request.post(`${config.apiBaseUrl}/api/incidents`, {
-      data: { title: `Incident ${suffix}`, severity: 'High', status: 'Open' },
-      headers: authHeader(token),
+      const response = await request.post(`${config.apiBaseUrl}/api/incidents`, {
+        data: { title: `Incident ${suffix}`, severity: 'High', status: 'Open' },
+        headers: authHeader(token),
+      });
+
+      expect(response.status()).toBe(201);
+      const { incident } = await response.json();
+
+      try {
+        expect(incident.title).toBe(`Incident ${suffix}`);
+        expect(incident.severity).toBe('High');
+        expect(incident.status).toBe('Open');
+      } finally {
+        await deleteIncident(request, adminToken, incident.id);
+      }
     });
-
-    expect(response.status()).toBe(201);
-    const { incident } = await response.json();
-
-    try {
-      expect(incident.title).toBe(`Incident ${suffix}`);
-      expect(incident.severity).toBe('High');
-      expect(incident.status).toBe('Open');
-    } finally {
-      await deleteIncident(request, token, incident.id);
-    }
-  });
+  }
 
   test('authenticated user can list incidents via API', async ({ request }) => {
     const token = await getToken(request);
