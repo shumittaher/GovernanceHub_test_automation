@@ -102,6 +102,280 @@ Returns:
 
 ---
 
+# Incidents
+
+All incident routes require:
+
+```text
+authMiddleware
+```
+
+Mounted under:
+
+```text
+/api/incidents
+```
+
+Incident records are scoped to the authenticated user's `tenantId`.
+
+## List Incidents
+
+```http
+GET /api/incidents
+```
+
+Returns incidents for the authenticated user's tenant.
+
+Success:
+
+```http
+200 OK
+```
+
+Returns:
+
+```json
+{
+  "incidents": []
+}
+```
+
+Server error:
+
+```http
+500 Internal Server Error
+```
+
+Returns:
+
+```json
+{
+  "status": "error",
+  "message": "Unable to fetch incidents"
+}
+```
+
+---
+
+## Get Incident By ID
+
+```http
+GET /api/incidents/:id
+```
+
+Validation:
+
+```text
+id must be a positive integer
+incident must exist within authenticated user's tenant
+```
+
+Success:
+
+```http
+200 OK
+```
+
+Returns:
+
+```json
+{
+  "incident": {}
+}
+```
+
+Errors:
+
+```http
+400 Bad Request
+404 Not Found
+```
+
+Error messages:
+
+```text
+Invalid incident id
+Incident not found
+```
+
+---
+
+## Create Incident
+
+```http
+POST /api/incidents
+```
+
+Request:
+
+```json
+{
+  "title": "Database outage",
+  "description": "Production database unavailable",
+  "severity": "High",
+  "status": "Open",
+  "assigned_to": "Admin User"
+}
+```
+
+Validation:
+
+```text
+title required
+description optional
+severity must be Low, Medium, High, or Critical
+status must be Open, In Progress, Resolved, or Closed
+assigned_to optional
+```
+
+Success:
+
+```http
+201 Created
+```
+
+Returns:
+
+```json
+{
+  "incident": {}
+}
+```
+
+Invalid body:
+
+```http
+400 Bad Request
+```
+
+Returns:
+
+```json
+{
+  "status": "error",
+  "message": "Invalid request body",
+  "errors": []
+}
+```
+
+Server error:
+
+```http
+500 Internal Server Error
+```
+
+Returns:
+
+```json
+{
+  "status": "error",
+  "message": "Unable to create incident"
+}
+```
+
+---
+
+## Update Incident
+
+```http
+PUT /api/incidents/:id
+```
+
+Request example:
+
+```json
+{
+  "status": "Resolved",
+  "severity": "Medium"
+}
+```
+
+Validation:
+
+```text
+id must be a positive integer
+at least one update field required
+title optional but non-empty if provided
+description optional
+severity optional, must be Low, Medium, High, or Critical
+status optional, must be Open, In Progress, Resolved, or Closed
+assigned_to optional
+incident must exist within authenticated user's tenant
+```
+
+Success:
+
+```http
+200 OK
+```
+
+Returns:
+
+```json
+{
+  "incident": {}
+}
+```
+
+Errors:
+
+```http
+400 Bad Request
+404 Not Found
+```
+
+Error messages:
+
+```text
+Invalid incident id
+Invalid request body
+Incident not found
+```
+
+---
+
+## Delete Incident
+
+```http
+DELETE /api/incidents/:id
+```
+
+Requires:
+
+```text
+authMiddleware
+requireRole("admin")
+```
+
+Validation:
+
+```text
+id must be a positive integer
+incident must exist within authenticated user's tenant
+```
+
+Success:
+
+```http
+204 No Content
+```
+
+Errors:
+
+```http
+400 Bad Request
+404 Not Found
+```
+
+Error messages:
+
+```text
+Invalid incident id
+Incident not found
+```
+
+---
+
 # Super Admin
 
 All routes require:
@@ -275,3 +549,5 @@ Errors:
 * Do not hardcode JWT tokens
 * Use `superAdminUser` from `test-data/users`
 * Use `config.apiBaseUrl` for API requests
+* UI tests should focus on user workflows
+* API tests should validate backend contracts, validation rules, authorization, and tenant scoping
