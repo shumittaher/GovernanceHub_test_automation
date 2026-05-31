@@ -29,6 +29,7 @@ test.describe('Authentication API', () => {
 
     expect(response.status()).toBe(401);
     const body = await response.json();
+    expect(body.status).toBe('error');
     expect(body.message).toBe('Invalid email or password');
   });
 
@@ -40,6 +41,7 @@ test.describe('Authentication API', () => {
 
     expect(response.status()).toBe(401);
     const body = await response.json();
+    expect(body.status).toBe('error');
     expect(body.message).toBe('Invalid email or password');
   });
 
