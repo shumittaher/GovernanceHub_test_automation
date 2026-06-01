@@ -1,40 +1,7 @@
-import { test, expect, type APIRequestContext } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { config } from '../../utils/config';
-import { type User, adminUser_1, adminUser_2, userUser_2 } from '../../test-data/users';
-
-// Helpers
-
-function authHeader(token: string) {
-  return { Authorization: `Bearer ${token}` };
-}
-
-async function getToken(request: APIRequestContext, user: User): Promise<string> {
-  const response = await request.post(`${config.apiBaseUrl}/api/auth/login`, {
-    data: { email: user.email, password: user.password },
-  });
-  expect(response.status()).toBe(200);
-  const { token } = await response.json();
-  return token;
-}
-
-async function createIncident(request: APIRequestContext, token: string, title: string): Promise<number> {
-  const response = await request.post(`${config.apiBaseUrl}/api/incidents`, {
-    data: { title, severity: 'Low', status: 'Open' },
-    headers: authHeader(token),
-  });
-  expect(response.status()).toBe(201);
-  const { incident } = await response.json();
-  return incident.id;
-}
-
-async function deleteIncident(request: APIRequestContext, token: string, id: number): Promise<void> {
-  const response = await request.delete(`${config.apiBaseUrl}/api/incidents/${id}`, {
-    headers: authHeader(token),
-  });
-
-  expect(response.status()).toBe(204);
-
-}
+import { adminUser_1, adminUser_2, userUser_2 } from '../../test-data/users';
+import { authHeader, getToken, createIncident, deleteIncident } from '../../utils/api-helpers';
 
 // Tests
 
@@ -53,8 +20,8 @@ test.describe('Incident Tenant Isolation API', () => {
     adminToken2 = await getToken(request, adminUser_2);
     userToken2 = await getToken(request, userUser_2);
 
-    tenant1IncidentId = await createIncident(request, adminToken1, `Tenant 1 Isolation ${Date.now()}`);
-    tenant2IncidentId = await createIncident(request, adminToken2, `Tenant 2 Isolation ${Date.now()}`);
+    tenant1IncidentId = (await createIncident(request, adminToken1, `Tenant 1 Isolation ${Date.now()}`)).id;
+    tenant2IncidentId = (await createIncident(request, adminToken2, `Tenant 2 Isolation ${Date.now()}`)).id;
   });
 
   test.afterAll(async ({ request }) => {
